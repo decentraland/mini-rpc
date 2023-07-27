@@ -47,10 +47,14 @@ type EventData = {
 
 ```
 
-Then you can implement the client by extending the RPC and using the internal `request` method
+Then you can implement the client by extending the `RPC` class and using the internal `request` method
 
 ```ts
-class Client extends RPC<EventType, EventData, Method, Params, Result> {
+//client.ts
+import { RPC } from '@dcl/mini-rpc'
+import { EventType, EventData, Method, Params, Result } from './types'
+
+export class Client extends RPC<EventType, EventData, Method, Params, Result> {
   constructor(transport: RPC.Transport) {
     super(id, transport)
   }
@@ -77,7 +81,11 @@ To implement the server you do the same thing but use the internal `handle` to i
 
 
 ```ts
-class Server extends RPC<EventType, EventData, Method, Params, Result> {
+// server.ts
+import { RPC } from '@dcl/mini-rpc'
+import { EventType, EventData, Method, Params, Result } from './types'
+
+export class Server extends RPC<EventType, EventData, Method, Params, Result> {
   constructor(transport: RPC.Transport) {
     super(id, transport)
     this.handle('get', async ({ key }) => {
@@ -100,10 +108,10 @@ Now you can create a transport and use the client/server like this
 
 ```ts
 // webapp.ts
+import { Client } from './client'
+
 const iframe = document.getElementById('my-iframe')
-
 const transport = new MessageTransport(window, iframe.contentWindow, 'https://iframe.com')
-
 const client = new Client(transport)
 
 // you can use any method on the client and it will be relayer to the server, and it will resolve/reject to the result/error
@@ -115,8 +123,9 @@ client.on('ready', ({ hello }) => console.log(`hello ${hello}`))
 
 ```ts
 // iframe.ts
-const transport = new MessageTransport(window, window.parent, 'https://parent.com')
+import { Server } from './server'
 
+const transport = new MessageTransport(window, window.parent, 'https://parent.com')
 const server = new Server(transport)
 
 // you can emits events if needed
