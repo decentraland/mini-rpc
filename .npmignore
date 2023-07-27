@@ -1,0 +1,6 @@
+src
+test
+.github
+coverage
+README.md
+jest.config.ts
