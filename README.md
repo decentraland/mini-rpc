@@ -108,6 +108,7 @@ Now you can create a transport and use the client/server like this
 
 ```ts
 // webapp.ts
+import { MessageTransport } from '@dcl/mini-rpc'
 import { Client } from './client'
 
 const iframe = document.getElementById('my-iframe')
@@ -123,6 +124,7 @@ client.on('ready', ({ hello }) => console.log(`hello ${hello}`))
 
 ```ts
 // iframe.ts
+import { MessageTransport } from '@dcl/mini-rpc'
 import { Server } from './server'
 
 const transport = new MessageTransport(window, window.parent, 'https://parent.com')
