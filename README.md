@@ -34,7 +34,7 @@ type Result = {
   [Method.DELETE]: void
 }
 
-// optionally you can have events emited by the server or client
+// optionally you can have events emitted by the server or client
 
 enum EventType {
   READY = 'ready'
