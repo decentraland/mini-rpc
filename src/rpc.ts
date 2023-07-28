@@ -82,6 +82,7 @@ export class RPC<
               } else {
                 promise.reject(new Error(response.error))
               }
+              this.promises.delete(response.id)
             }
           }
           break
