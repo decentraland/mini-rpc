@@ -33,7 +33,7 @@ export class MessageTransport extends RPC.Transport {
           if (event.data.type === 'ping') {
             this.target.postMessage({ type: 'pong' }, this.origin)
           }
-          /// flush the queue
+          // flush the queue
           while (this.queue.length > 0) {
             const message = this.queue.shift()
             this.send(message)
