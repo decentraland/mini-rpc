@@ -1,6 +1,6 @@
 # @dcl/mini-rpc
 
-This package can be used to create clients and servers over an abstract transport, and it includes some transport implementations
+This package can be used to create clients and servers over an abstract transport, and it includes some transport implementations.
 
 ## Installation
 
@@ -10,7 +10,7 @@ npm i @dcl/mini-rpc
 
 ## Usage
 
-You need to define the events and/or methods, and optionally can also add events
+You need to define the methods, and optionally you can also add events
 
 ```ts
 enum Method {
@@ -34,14 +34,14 @@ type Result = {
   [Method.DELETE]: void
 }
 
-// optionally you can have events emitted by the server or client
+// optionally you can have events emitted by the server or the client
 
 enum EventType {
-  READY = 'ready'
+  HELLO = 'hello'
 }
 
 type EventData = {
-  [EventType.READY]: { hello: string }
+  [EventType.HELLO]: { name: string }
 }
 
 
@@ -52,7 +52,7 @@ Then you can implement the client by extending the `RPC` class and using the int
 ```ts
 //client.ts
 import { RPC } from '@dcl/mini-rpc'
-import { Method, Params, Result, EventType, EventData, } from './types'
+import { Method, Params, Result, EventType, EventData } from './types'
 
 export class Client extends RPC<Method, Params, Result, EventType, EventData> {
   constructor(transport: RPC.Transport) {
@@ -104,7 +104,7 @@ export class Server extends RPC<Method, Params, Result, EventType, EventData> {
 }
 ```
 
-Now you can create a transport and use the client/server like this
+Now you can create a transport and use the client like this
 
 ```ts
 // webapp.ts
@@ -117,10 +117,13 @@ const client = new Client(transport)
 
 // you can use any method on the client and it will be relayer to the server, and it will resolve/reject to the result/error
 await client.set('some-key', 'some-value')
+console.log(await client.get('some-key')) // 'some-value'
 
-// you can also listen to event
-client.on('ready', ({ hello }) => console.log(`hello ${hello}`))
+// you can also listen to events from the server
+client.on('hello', ({ name }) => console.log(`hello ${name}`))
 ```
+
+And the server like this
 
 ```ts
 // iframe.ts
@@ -130,8 +133,8 @@ import { Server } from './server'
 const transport = new MessageTransport(window, window.parent, 'https://parent.com')
 const server = new Server(transport)
 
-// you can emits events if needed
-server.emit('ready', { hello: 'world' })
+// you can emit events if needed for the client to listen to
+server.emit('hello', { name: 'world' })
 ```
 
 ## Test
