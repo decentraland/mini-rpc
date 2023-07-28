@@ -31,7 +31,13 @@ namespace Test {
   }
 }
 
-class Client extends RPC<Test.EventType, Test.EventData, Test.Method, Test.Params, Test.Result> {
+class Client extends RPC<
+  Test.Method,
+  Test.Params,
+  Test.Result,
+  Test.EventType,
+  Test.EventData
+> {
   constructor(transport: RPC.Transport) {
     super('test', transport)
   }
@@ -45,7 +51,13 @@ class Client extends RPC<Test.EventType, Test.EventData, Test.Method, Test.Param
   }
 }
 
-class Server extends RPC<Test.EventType, Test.EventData, Test.Method, Test.Params, Test.Result> {
+class Server extends RPC<
+  Test.Method,
+  Test.Params,
+  Test.Result,
+  Test.EventType,
+  Test.EventData
+> {
   constructor(transport: RPC.Transport) {
     super('test', transport)
     this.handle('add', async ({ a, b }) => {

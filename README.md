@@ -52,9 +52,9 @@ Then you can implement the client by extending the `RPC` class and using the int
 ```ts
 //client.ts
 import { RPC } from '@dcl/mini-rpc'
-import { EventType, EventData, Method, Params, Result } from './types'
+import { Method, Params, Result, EventType, EventData, } from './types'
 
-export class Client extends RPC<EventType, EventData, Method, Params, Result> {
+export class Client extends RPC<Method, Params, Result, EventType, EventData> {
   constructor(transport: RPC.Transport) {
     super(id, transport)
   }
@@ -83,9 +83,9 @@ To implement the server you do the same thing but use the internal `handle` to i
 ```ts
 // server.ts
 import { RPC } from '@dcl/mini-rpc'
-import { EventType, EventData, Method, Params, Result } from './types'
+import { Method, Params, Result , EventType, EventData } from './types'
 
-export class Server extends RPC<EventType, EventData, Method, Params, Result> {
+export class Server extends RPC<Method, Params, Result, EventType, EventData> {
   constructor(transport: RPC.Transport) {
     super(id, transport)
     this.handle('get', async ({ key }) => {

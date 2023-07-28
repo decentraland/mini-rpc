@@ -5,19 +5,26 @@ import future, { IFuture } from 'fp-future'
  * A class to implement RPC server/client or simple event emitters over an abstract transport
  */
 
+
 export class RPC<
-  EventType extends string = string,
-  EventData extends Record<EventType, any> = Record<EventType, any>,
   Method extends string = string,
   Params extends Record<Method, any> = Record<Method, any>,
-  Result extends Record<Method, any> = Record<Method, any>
+  Result extends Record<Method, any> = Record<Method, any>,
+  EventType extends string = string,
+  EventData extends Record<EventType, any> = Record<EventType, any>,
 > {
   private currentId = 0
   private events = mitt<EventData>()
   private promises = new Map<number, IFuture<any>>()
-  private handlers = new Map<Method, (params: Params[Method]) => Promise<Result[Method]>>()
+  private handlers = new Map<
+    Method,
+    (params: Params[Method]) => Promise<Result[Method]>
+  >()
 
-  constructor(public id: string, public transport: RPC.Transport) {
+  constructor(
+    public id: string,
+    public transport: RPC.Transport,
+  ) {
     this.transport.addEventListener('message', this.handler)
   }
 
@@ -47,8 +54,8 @@ export class RPC<
                   id: request.id,
                   method: request.method,
                   success: true,
-                  result
-                }
+                  result,
+                },
               })
             } catch (error) {
               this.transport.send({
@@ -58,8 +65,8 @@ export class RPC<
                   id: request.id,
                   method: request.method,
                   success: false,
-                  error: (error as Error).message
-                }
+                  error: (error as Error).message,
+                },
               })
             }
           }
@@ -84,9 +91,14 @@ export class RPC<
   }
 
   private isMessage(
-    value: any
-  ): value is RPC.Message<RPC.MessageType, RPC.MessagePayload<EventType, EventData, Method, Params, Result>> {
-    const messageTypes = Object.values(RPC.MessageType).filter((value) => typeof value === 'string')
+    value: any,
+  ): value is RPC.Message<
+    RPC.MessageType,
+    RPC.MessagePayload<Method, Params, Result, EventType, EventData>
+  > {
+    const messageTypes = Object.values(RPC.MessageType).filter(
+      (value) => typeof value === 'string',
+    )
     return (
       value &&
       value.id === this.id &&
@@ -102,18 +114,25 @@ export class RPC<
   }
 
   private isRequest(value: any): value is RPC.Request<Method, Params> {
-    return value && typeof value.method === 'string' && typeof value.id === 'number'
+    return (
+      value && typeof value.method === 'string' && typeof value.id === 'number'
+    )
   }
 
   private isResponse(value: any): value is RPC.Response<Method, Result> {
-    return value && typeof value.method === 'string' && typeof value.id === 'number'
+    return (
+      value && typeof value.method === 'string' && typeof value.id === 'number'
+    )
   }
 
   on<T extends EventType>(type: `${T}`, handler: (data: EventData[T]) => void) {
     this.events.on(type as T, handler)
   }
 
-  off<T extends EventType>(type: `${T}`, handler: (data: EventData[T]) => void) {
+  off<T extends EventType>(
+    type: `${T}`,
+    handler: (data: EventData[T]) => void,
+  ) {
     this.events.off(type as T, handler)
   }
 
@@ -123,8 +142,8 @@ export class RPC<
       type: RPC.MessageType.EVENT,
       payload: {
         type,
-        data
-      }
+        data,
+      },
     })
   }
 
@@ -138,14 +157,20 @@ export class RPC<
       payload: {
         id,
         method,
-        params
-      }
+        params,
+      },
     })
     return promise
   }
 
-  handle<T extends Method>(method: `${T}`, handler: (params: Params[T]) => Promise<Result[T]>) {
-    this.handlers.set(method as T, handler as (params: Params[Method]) => Promise<Result[T]>)
+  handle<T extends Method>(
+    method: `${T}`,
+    handler: (params: Params[T]) => Promise<Result[T]>,
+  ) {
+    this.handlers.set(
+      method as T,
+      handler as (params: Params[Method]) => Promise<Result[T]>,
+    )
   }
 
   dispose() {
@@ -160,17 +185,23 @@ export namespace RPC {
     emit(type: `${Transport.EventType}`, message: Message) {
       this.events.emit(type as Transport.EventType, message)
     }
-    addEventListener(type: `${Transport.EventType}`, handler: Transport.Handler) {
+    addEventListener(
+      type: `${Transport.EventType}`,
+      handler: Transport.Handler,
+    ) {
       this.events.on(type as Transport.EventType, handler)
     }
-    removeEventListener(type: `${Transport.EventType}`, handler: Transport.Handler) {
+    removeEventListener(
+      type: `${Transport.EventType}`,
+      handler: Transport.Handler,
+    ) {
       this.events.off(type as Transport.EventType, handler)
     }
   }
 
   export namespace Transport {
     export enum EventType {
-      MESSAGE = 'message'
+      MESSAGE = 'message',
     }
     export type EventData = {
       [EventType.MESSAGE]: Message
@@ -178,42 +209,46 @@ export namespace RPC {
     export type Handler = (message: Message) => void
   }
 
-  export type Message<T extends string = string, K extends Record<T, any> = Record<T, any>> = {
+  export type Message<
+    T extends string = string,
+    K extends Record<T, any> = Record<T, any>,
+  > = {
     id: string
     type: T
     payload: K[T]
   }
 
   export enum MessageType {
-    EVENT = 'event',
     REQUEST = 'request',
-    RESPONSE = 'response'
+    RESPONSE = 'response',
+    EVENT = 'event',
   }
 
   export type MessagePayload<
-    EventType extends string,
-    EventData extends Record<EventType, any>,
     Method extends string,
     Params extends Record<Method, any>,
-    Result extends Record<Method, any>
+    Result extends Record<Method, any>,
+    EventType extends string,
+    EventData extends Record<EventType, any>,
   > = {
     [MessageType.EVENT]: Event<EventType, EventData>
     [MessageType.REQUEST]: Request<Method, Params>
     [MessageType.RESPONSE]: Response<Method, Result>
   }
 
-  export type Event<EventType extends string, EventData extends Record<EventType, any>> = {
-    type: EventType
-    data: EventData[EventType]
-  }
-
-  export type Request<Method extends string, Params extends Record<Method, any>> = {
+  export type Request<
+    Method extends string,
+    Params extends Record<Method, any>,
+  > = {
     id: number
     method: Method
     params: Params[Method]
   }
 
-  export type Response<Method extends string, Result extends Record<Method, any>> = {
+  export type Response<
+    Method extends string,
+    Result extends Record<Method, any>,
+  > = {
     id: number
     method: Method
   } & (
@@ -223,4 +258,12 @@ export namespace RPC {
       }
     | { success: false; error: string }
   )
+
+  export type Event<
+    EventType extends string,
+    EventData extends Record<EventType, any>,
+  > = {
+    type: EventType
+    data: EventData[EventType]
+  }
 }
