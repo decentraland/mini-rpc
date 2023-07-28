@@ -66,12 +66,12 @@ describe('MessageTransport', () => {
       transport.send(message)
       expect(target.postMessage).toHaveBeenCalledWith(message, '*')
     })
-    it('handle messages from the source and emit them', () => {
-      const handler = jest.fn()
-      transport.addEventListener('message', handler)
-      send(message)
-      expect(handler).toHaveBeenCalledWith(message)
-    })
+    it("should handle messages from the source and emit them", () => {
+      const handler = jest.fn();
+      transport.addEventListener("message", handler);
+      send(message);
+      expect(handler).toHaveBeenCalledWith(message);
+    });
   })
 
   describe('When disposing the transport', () => {

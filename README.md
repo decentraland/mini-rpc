@@ -1,6 +1,6 @@
 # @dcl/mini-rpc
 
-This package can be used to create client and servers over an abstract transport, and it includes some transport implementations
+This package can be used to create clients and servers over an abstract transport, and it includes some transport implementations
 
 ## Installation
 
@@ -10,7 +10,7 @@ npm i @dcl/mini-rpc
 
 ## Usage
 
-You need to create define the events and/or methods, and optionally can also add events
+You need to define the events and/or methods, and optionally can also add events
 
 ```ts
 enum Method {

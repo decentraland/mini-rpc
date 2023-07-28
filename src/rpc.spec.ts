@@ -67,23 +67,23 @@ const client = new Client(transportA)
 const server = new Server(transportB)
 
 describe('RPC', () => {
-  describe('When requesting a method to the client', () => {
-    describe('and the server response is successful', () => {
-      it("the client request should resolve to the server's response", async () => {
-        await expect(client.add(1, 2)).resolves.toBe(3)
-      })
-    })
-    describe('and the server response is NOT successful', () => {
-      it("the client request should reject with the server's error message", async () => {
-        await expect(client.add(1, NaN)).rejects.toThrow(/NaN/)
-      })
-    })
-    describe('and the server has not implemented the method', () => {
-      it('the client request should reject with an unimplemented method error', async () => {
-        await expect(client.unimplemented()).rejects.toThrow(/not implemented/)
-      })
-    })
-  })
+  describe("When requesting a method from the client", () => {
+    describe("and the server response is successful", () => {
+      it("should resolve the client request to the server's response", async () => {
+        await expect(client.add(1, 2)).resolves.toBe(3);
+      });
+    });
+    describe("and the server response is NOT successful", () => {
+      it("should reject the client request with the server's error message", async () => {
+        await expect(client.add(1, NaN)).rejects.toThrow(/NaN/);
+      });
+    });
+    describe("and the server has not implemented the method", () => {
+      it("should reject the client request with an unimplemented method error", async () => {
+        await expect(client.unimplemented()).rejects.toThrow(/not implemented/);
+      });
+    });
+  });
   describe('When emitting an event on the server', () => {
     it('should be handled by the client', () => {
       const handler = jest.fn()
