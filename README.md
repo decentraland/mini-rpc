@@ -56,7 +56,7 @@ import { Method, Params, Result, EventType, EventData } from './types'
 
 export class Client extends RPC<Method, Params, Result, EventType, EventData> {
   constructor(transport: RPC.Transport) {
-    super(id, transport)
+    super("my-rpc", transport)
   }
 
   get(key: string) {
@@ -77,6 +77,8 @@ export class Client extends RPC<Method, Params, Result, EventType, EventData> {
 }
 ```
 
+> **NOTE**: You will need to pass an id to the `RPC` super constructor, in this case `"my-rpc"` you will need to use the same name for the server implementation. This is so multiples clients and servers can work over the same single transport.
+
 To implement the server you do the same thing but use the internal `handle` to implement the methods
 
 
@@ -87,7 +89,7 @@ import { Method, Params, Result , EventType, EventData } from './types'
 
 export class Server extends RPC<Method, Params, Result, EventType, EventData> {
   constructor(transport: RPC.Transport) {
-    super(id, transport)
+    super("my-rpc", transport)
     this.handle('get', async ({ key }) => {
       return localStorage.getItem(key)
     })
