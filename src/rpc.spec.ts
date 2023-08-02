@@ -1,16 +1,9 @@
+import { InMemoryTransport } from './transports'
 import { RPC } from './rpc'
 
 namespace Test {
-  export enum EventType {
-    FOO = 'foo'
-  }
-
-  export type EventData = {
-    [EventType.FOO]: { bar: string }
-  }
-
   export enum Method {
-    ADD = 'add'
+    ADD = 'add',
   }
 
   export type Params = {
@@ -21,13 +14,12 @@ namespace Test {
     [Method.ADD]: number
   }
 
-  export class Transport extends RPC.Transport {
-    other: RPC.Transport | null = null
-    send(message: RPC.Message) {
-      if (this.other) {
-        this.other.emit('message', message)
-      }
-    }
+  export enum EventType {
+    FOO = 'foo',
+  }
+
+  export type EventData = {
+    [EventType.FOO]: { bar: string }
   }
 }
 
@@ -69,33 +61,33 @@ class Server extends RPC<
   }
 }
 
-const transportA = new Test.Transport()
-const transportB = new Test.Transport()
+const transportA = new InMemoryTransport()
+const transportB = new InMemoryTransport()
 
-transportA.other = transportB
-transportB.other = transportA
+transportA.connect(transportB)
+transportB.connect(transportA)
 
 const client = new Client(transportA)
 const server = new Server(transportB)
 
 describe('RPC', () => {
-  describe("When requesting a method from the client", () => {
-    describe("and the server response is successful", () => {
+  describe('When requesting a method from the client', () => {
+    describe('and the server response is successful', () => {
       it("should resolve the client request to the server's response", async () => {
-        await expect(client.add(1, 2)).resolves.toBe(3);
-      });
-    });
-    describe("and the server response is NOT successful", () => {
+        await expect(client.add(1, 2)).resolves.toBe(3)
+      })
+    })
+    describe('and the server response is NOT successful', () => {
       it("should reject the client request with the server's error message", async () => {
-        await expect(client.add(1, NaN)).rejects.toThrow(/NaN/);
-      });
-    });
-    describe("and the server has not implemented the method", () => {
-      it("should reject the client request with an unimplemented method error", async () => {
-        await expect(client.unimplemented()).rejects.toThrow(/not implemented/);
-      });
-    });
-  });
+        await expect(client.add(1, NaN)).rejects.toThrow(/NaN/)
+      })
+    })
+    describe('and the server has not implemented the method', () => {
+      it('should reject the client request with an unimplemented method error', async () => {
+        await expect(client.unimplemented()).rejects.toThrow(/not implemented/)
+      })
+    })
+  })
   describe('When emitting an event on the server', () => {
     it('should be handled by the client', () => {
       const handler = jest.fn()

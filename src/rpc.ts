@@ -47,27 +47,21 @@ export class RPC<
                 throw new Error(`Method "${request.method}" not implemented`)
               }
               const result = await handler(request.params)
-              this.transport.send({
-                id: this.id,
-                type: RPC.MessageType.RESPONSE,
-                payload: {
-                  id: request.id,
-                  method: request.method,
-                  success: true,
-                  result,
-                },
+              const message = this.createMessage('response', {
+                id: request.id,
+                method: request.method,
+                success: true,
+                result,
               })
+              this.transport.send(message)
             } catch (error) {
-              this.transport.send({
-                id: this.id,
-                type: RPC.MessageType.RESPONSE,
-                payload: {
-                  id: request.id,
-                  method: request.method,
-                  success: false,
-                  error: (error as Error).message,
-                },
+              const message = this.createMessage('response', {
+                id: request.id,
+                method: request.method,
+                success: false,
+                error: (error as Error).message,
               })
+              this.transport.send(message)
             }
           }
           break
@@ -152,15 +146,12 @@ export class RPC<
     const promise = future<Result[T]>()
     const id = this.currentId++
     this.promises.set(id, promise)
-    this.transport.send({
-      id: this.id,
-      type: RPC.MessageType.REQUEST,
-      payload: {
-        id,
-        method,
-        params,
-      },
+    const message = this.createMessage('request', {
+      id,
+      method: method as T,
+      params,
     })
+    this.transport.send(message)
     return promise
   }
 
@@ -177,6 +168,24 @@ export class RPC<
   dispose() {
     this.transport.removeEventListener('message', this.handler)
   }
+
+  createMessage = <Type extends RPC.MessageType>(
+    type: `${Type}`,
+    payload: RPC.MessagePayload<
+      Method,
+      Params,
+      Result,
+      EventType,
+      EventData
+    >[Type],
+  ): RPC.Message<
+    Type,
+    RPC.MessagePayload<Method, Params, Result, EventType, EventData>
+  > => ({
+    id: this.id,
+    type: type as Type,
+    payload,
+  })
 }
 
 export namespace RPC {
@@ -211,12 +220,12 @@ export namespace RPC {
   }
 
   export type Message<
-    T extends string = string,
-    K extends Record<T, any> = Record<T, any>,
+    Type extends string = string,
+    Payload extends Record<Type, any> = Record<Type, any>,
   > = {
     id: string
-    type: T
-    payload: K[T]
+    type: Type
+    payload: Payload[Type]
   }
 
   export enum MessageType {
