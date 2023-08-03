@@ -1,19 +1,29 @@
-import { RPC } from '../rpc'
+import { Transport } from '../transport'
 
 type Source = {
-  addEventListener: (type: 'message', handler: (event: MessageEvent) => void) => void
-  removeEventListener: (type: 'message', handler: (event: MessageEvent) => void) => void
+  addEventListener: (
+    type: 'message',
+    handler: (event: MessageEvent) => void,
+  ) => void
+  removeEventListener: (
+    type: 'message',
+    handler: (event: MessageEvent) => void,
+  ) => void
 }
 
 type Target = {
   postMessage: (message: any, origin: string) => void
 }
 
-export class MessageTransport extends RPC.Transport {
+export class MessageTransport extends Transport {
   private ready = false
   private queue: any[] = []
 
-  constructor(public source: Source, public target: Target, public origin: string = '*') {
+  constructor(
+    public source: Source,
+    public target: Target,
+    public origin: string = '*',
+  ) {
     super()
     // bind handler
     this.source.addEventListener('message', this.handler)

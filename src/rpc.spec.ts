@@ -1,5 +1,6 @@
 import { InMemoryTransport } from './transports'
 import { RPC } from './rpc'
+import { Transport } from './transport'
 
 namespace Test {
   export enum Method {
@@ -30,7 +31,7 @@ class Client extends RPC<
   Test.EventType,
   Test.EventData
 > {
-  constructor(transport: RPC.Transport) {
+  constructor(transport: Transport) {
     super('test', transport)
   }
   async add(a: number, b: number) {
@@ -50,7 +51,7 @@ class Server extends RPC<
   Test.EventType,
   Test.EventData
 > {
-  constructor(transport: RPC.Transport) {
+  constructor(transport: Transport) {
     super('test', transport)
     this.handle('add', async ({ a, b }) => {
       if (isNaN(a) || isNaN(b)) {

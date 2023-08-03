@@ -1,20 +1,26 @@
 import mitt from 'mitt'
-import { RPC } from '../rpc'
 import { MessageTransport } from './message'
+import { Message } from '../transport'
 
 const events = mitt()
 const send = (message: any) => events.emit('message', { data: message })
 
 const source = {
-  addEventListener: jest.fn().mockImplementation((type, hanlder) => events.on(type, hanlder)),
-  removeEventListener: jest.fn()
+  addEventListener: jest
+    .fn()
+    .mockImplementation((type, hanlder) => events.on(type, hanlder)),
+  removeEventListener: jest.fn(),
 }
 
 const target = {
-  postMessage: jest.fn()
+  postMessage: jest.fn(),
 }
 
-const message: RPC.Message = { id: 'test', type: 'foo', payload: { bar: 'baz' } }
+const message: Message = {
+  id: 'test',
+  type: 'foo',
+  payload: { bar: 'baz' },
+}
 
 describe('MessageTransport', () => {
   let transport: MessageTransport
@@ -66,12 +72,12 @@ describe('MessageTransport', () => {
       transport.send(message)
       expect(target.postMessage).toHaveBeenCalledWith(message, '*')
     })
-    it("should handle messages from the source and emit them", () => {
-      const handler = jest.fn();
-      transport.addEventListener("message", handler);
-      send(message);
-      expect(handler).toHaveBeenCalledWith(message);
-    });
+    it('should handle messages from the source and emit them', () => {
+      const handler = jest.fn()
+      transport.addEventListener('message', handler)
+      send(message)
+      expect(handler).toHaveBeenCalledWith(message)
+    })
   })
 
   describe('When disposing the transport', () => {
