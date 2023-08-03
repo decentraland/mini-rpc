@@ -35,20 +35,23 @@ export class MessageTransport extends Transport {
     if (event.data) {
       // special messages to establish communication
       if (event.data.type === 'ping' || event.data.type === 'pong') {
-        // if communication channel is not ready
+        debugger
+        // set as ready if was not yet
         if (!this.ready) {
-          // set as ready
           this.ready = true
-          // only send pong if the message received was a ping
-          if (event.data.type === 'ping') {
-            this.target.postMessage({ type: 'pong' }, this.origin)
-          }
-          // flush the queue
-          while (this.queue.length > 0) {
-            const message = this.queue.shift()
-            this.send(message)
-          }
         }
+
+        // answer ping with pong
+        if (event.data.type === 'ping') {
+          this.target.postMessage({ type: 'pong' }, this.origin)
+        }
+
+        // flush the queue
+        while (this.queue.length > 0) {
+          const message = this.queue.shift()
+          this.send(message)
+        }
+
         // send all other events to the handler (if any)
       } else {
         this.emit('message', event.data)
