@@ -35,7 +35,6 @@ export class MessageTransport extends Transport {
     if (event.data) {
       // special messages to establish communication
       if (event.data.type === 'ping' || event.data.type === 'pong') {
-        debugger
         // set as ready if was not yet
         if (!this.ready) {
           this.ready = true
