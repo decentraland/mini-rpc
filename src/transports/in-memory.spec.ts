@@ -1,7 +1,7 @@
-import { RPC } from '../rpc'
+import { Message } from '../transport'
 import { InMemoryTransport } from './in-memory'
 
-const message: RPC.Message = { id: 'test', type: 'foo', payload: 'bar' }
+const message: Message = { id: 'test', type: 'foo', payload: 'bar' }
 
 describe('InMemoryTransport', () => {
   let transportA: InMemoryTransport

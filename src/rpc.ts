@@ -1,10 +1,10 @@
 import mitt from 'mitt'
 import future, { IFuture } from 'fp-future'
+import { Message, Transport } from './transport'
 
 /**
  * A class to implement RPC server/client or simple event emitters over an abstract transport
  */
-
 
 export class RPC<
   Method extends string = string,
@@ -23,7 +23,7 @@ export class RPC<
 
   constructor(
     public id: string,
-    public transport: RPC.Transport,
+    public transport: Transport,
   ) {
     this.transport.addEventListener('message', this.handler)
   }
@@ -87,7 +87,7 @@ export class RPC<
 
   private isMessage(
     value: any,
-  ): value is RPC.Message<
+  ): value is Message<
     RPC.MessageType,
     RPC.MessagePayload<Method, Params, Result, EventType, EventData>
   > {
@@ -178,7 +178,7 @@ export class RPC<
       EventType,
       EventData
     >[Type],
-  ): RPC.Message<
+  ): Message<
     Type,
     RPC.MessagePayload<Method, Params, Result, EventType, EventData>
   > => ({
@@ -188,46 +188,8 @@ export class RPC<
   })
 }
 
+/* istanbul ignore next line */
 export namespace RPC {
-  export abstract class Transport {
-    abstract send(message: Message): void
-    private events = mitt<Transport.EventData>()
-    emit(type: `${Transport.EventType}`, message: Message) {
-      this.events.emit(type as Transport.EventType, message)
-    }
-    addEventListener(
-      type: `${Transport.EventType}`,
-      handler: Transport.Handler,
-    ) {
-      this.events.on(type as Transport.EventType, handler)
-    }
-    removeEventListener(
-      type: `${Transport.EventType}`,
-      handler: Transport.Handler,
-    ) {
-      this.events.off(type as Transport.EventType, handler)
-    }
-  }
-
-  export namespace Transport {
-    export enum EventType {
-      MESSAGE = 'message',
-    }
-    export type EventData = {
-      [EventType.MESSAGE]: Message
-    }
-    export type Handler = (message: Message) => void
-  }
-
-  export type Message<
-    Type extends string = string,
-    Payload extends Record<Type, any> = Record<Type, any>,
-  > = {
-    id: string
-    type: Type
-    payload: Payload[Type]
-  }
-
   export enum MessageType {
     REQUEST = 'request',
     RESPONSE = 'response',

@@ -1,2 +1,4 @@
+/* istanbul ignore file */
 export * from './transports'
-export { RPC } from './rpc'
+export * from './transport'
+export * from './rpc'

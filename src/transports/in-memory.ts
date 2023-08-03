@@ -1,8 +1,8 @@
-import { RPC } from '../rpc'
+import { Message, Transport } from '../transport'
 
-export class InMemoryTransport extends RPC.Transport {
-  private others = new Set<RPC.Transport>()
-  send(message: RPC.Message) {
+export class InMemoryTransport extends Transport {
+  private others = new Set<Transport>()
+  send(message: Message) {
     for (const transport of this.others) {
       transport.emit('message', message)
     }
