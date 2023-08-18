@@ -30,7 +30,12 @@ export class RPC<
     public id: string,
     public transport: Transport,
   ) {
+    // bind transport
     this.transport.addEventListener('message', this.handler)
+
+    // init connection
+    const message = this.createMessage('connection', { type: 'ping' })
+    this.transport.send(message)
   }
 
   private handler = async (message: any) => {
@@ -160,11 +165,7 @@ export class RPC<
   }
 
   private isConnection(value: any): value is RPC.Connection {
-    return (
-      value &&
-      (value.type === 'ping' || value.type === 'pong') &&
-      typeof value.id === 'number'
-    )
+    return value && (value.type === 'ping' || value.type === 'pong')
   }
 
   on<T extends EventType>(type: `${T}`, handler: (data: EventData[T]) => void) {
