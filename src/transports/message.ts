@@ -22,10 +22,7 @@ export class MessageTransport extends Transport {
     public origin: string = '*',
   ) {
     super()
-    // bind handler
     this.source.addEventListener('message', this.handler)
-    // send ping
-    this.target.postMessage({ type: 'ping' }, this.origin)
   }
 
   private handler = (event: MessageEvent) => {

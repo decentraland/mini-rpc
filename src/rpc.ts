@@ -95,6 +95,7 @@ export class RPC<
           if (this.isConnection(message.payload)) {
             const connection = message.payload
 
+            // set as connected
             if (!this.ready) {
               this.ready = true
             }
