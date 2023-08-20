@@ -62,18 +62,34 @@ class Server extends RPC<
   }
 }
 
-const transportA = new InMemoryTransport()
-const transportB = new InMemoryTransport()
-
-transportA.connect(transportB)
-transportB.connect(transportA)
-
-const client = new Client(transportA)
-const server = new Server(transportB)
-
 describe('RPC', () => {
-  describe('When requesting a method from the client', () => {
-    describe('When the RPC is ready', () => {
+  let transportA: InMemoryTransport
+  let transportB: InMemoryTransport
+
+  beforeEach(() => {
+    transportA = new InMemoryTransport()
+    transportB = new InMemoryTransport()
+  })
+  describe('When creating an RPC', () => {
+    it('should send a ping message through the transport', () => {
+      const spy = jest.spyOn(transportA, 'send')
+      const client = new Client(transportA)
+      const message = client.createMessage('connection', { type: 'ping' })
+      expect(spy).toHaveBeenCalledWith(message)
+    })
+  })
+  describe('When the RPC is ready', () => {
+    let client: Client
+    let server: Server
+
+    beforeEach(() => {
+      transportA.connect(transportB)
+      transportB.connect(transportA)
+      client = new Client(transportA)
+      server = new Server(transportB)
+    })
+
+    describe('When requesting a method from the client', () => {
       describe('and the server response is successful', () => {
         it("should resolve the client request to the server's response", async () => {
           await expect(client.add(1, 2)).resolves.toBe(3)
@@ -126,6 +142,32 @@ describe('RPC', () => {
           server.emit('foo', { bar: 'baz' })
           expect(handler).not.toHaveBeenCalled()
         })
+      })
+    })
+  })
+  describe('When the RPC is not ready', () => {
+    let client: Client
+
+    beforeEach(() => {
+      transportA.connect(transportB)
+      transportB.connect(transportA)
+      client = new Client(transportA)
+    })
+
+    it('should enqueue the messages', () => {
+      const spy = jest.spyOn(transportA, 'send')
+      client.add(1, 2)
+      expect(spy).not.toHaveBeenCalled()
+    })
+    describe('and then the RPC becomes ready', () => {
+      it('should flush the messages in the queue', async () => {
+        const promise = client.add(1, 2)
+        const spy = jest.spyOn(transportA, 'send')
+        expect(spy).not.toHaveBeenCalled()
+        // server becomes available
+        new Server(transportB)
+        expect(spy).toHaveBeenCalled()
+        await expect(promise).resolves.toBe(3)
       })
     })
   })

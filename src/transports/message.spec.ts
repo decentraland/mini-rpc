@@ -36,12 +36,6 @@ describe('MessageTransport', () => {
     target.postMessage.mockClear()
   })
 
-  describe('When creating a MessageTransport', () => {
-    it('should send a ping message to the target', () => {
-      expect(target.postMessage).toHaveBeenCalledWith({ type: 'ping' }, '*')
-    })
-  })
-
   it('should send post messages to the target', () => {
     transport.send(message)
     expect(target.postMessage).toHaveBeenCalledWith(message, '*')
