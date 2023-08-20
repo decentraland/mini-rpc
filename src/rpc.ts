@@ -20,12 +20,22 @@ export class RPC<
     Method,
     (params: Params[Method]) => Promise<Result[Method]>
   >()
+  private ready = false
+  private queue: Message<
+    RPC.MessageType,
+    RPC.MessagePayload<Method, Params, Result, EventType, EventData>
+  >[] = []
 
   constructor(
     public id: string,
     public transport: Transport,
   ) {
+    // bind transport
     this.transport.addEventListener('message', this.handler)
+
+    // init connection
+    const message = this.createMessage('connection', { type: 'ping' })
+    this.transport.send(message)
   }
 
   private handler = async (message: any) => {
@@ -53,7 +63,7 @@ export class RPC<
                 success: true,
                 result,
               })
-              this.transport.send(message)
+              this.send(message)
             } catch (error) {
               const message = this.createMessage('response', {
                 id: request.id,
@@ -61,7 +71,7 @@ export class RPC<
                 success: false,
                 error: (error as Error).message,
               })
-              this.transport.send(message)
+              this.send(message)
             }
           }
           break
@@ -81,7 +91,47 @@ export class RPC<
           }
           break
         }
+        case RPC.MessageType.CONNECTION: {
+          if (this.isConnection(message.payload)) {
+            const connection = message.payload
+
+            // set as connected
+            if (!this.ready) {
+              this.ready = true
+            }
+
+            // answer ping with pong
+            if (connection.type === 'ping') {
+              const message = this.createMessage('connection', { type: 'pong' })
+              this.send(message)
+            }
+
+            // wait for next frame, this allow the contructor on the other end to finish setting up hanlders if necessary
+            const frame = future<unknown>()
+            requestAnimationFrame(frame.resolve)
+            await frame
+
+            // flush the queue
+            while (this.queue.length > 0) {
+              const message = this.queue.shift()!
+              this.send(message)
+            }
+          }
+        }
       }
+    }
+  }
+
+  private send(
+    message: Message<
+      RPC.MessageType,
+      RPC.MessagePayload<Method, Params, Result, EventType, EventData>
+    >,
+  ) {
+    if (!this.ready) {
+      this.queue.push(message)
+    } else {
+      this.transport.send(message)
     }
   }
 
@@ -120,6 +170,10 @@ export class RPC<
     )
   }
 
+  private isConnection(value: any): value is RPC.Connection {
+    return value && (value.type === 'ping' || value.type === 'pong')
+  }
+
   on<T extends EventType>(type: `${T}`, handler: (data: EventData[T]) => void) {
     this.events.on(type as T, handler)
   }
@@ -132,11 +186,11 @@ export class RPC<
   }
 
   emit<T extends EventType>(type: `${T}`, data: EventData[T]) {
-    this.transport.send({
+    this.send({
       id: this.id,
       type: RPC.MessageType.EVENT,
       payload: {
-        type,
+        type: type as T,
         data,
       },
     })
@@ -151,7 +205,7 @@ export class RPC<
       method: method as T,
       params,
     })
-    this.transport.send(message)
+    this.send(message)
     return promise
   }
 
@@ -194,6 +248,7 @@ export namespace RPC {
     REQUEST = 'request',
     RESPONSE = 'response',
     EVENT = 'event',
+    CONNECTION = 'connection',
   }
 
   export type MessagePayload<
@@ -206,6 +261,7 @@ export namespace RPC {
     [MessageType.EVENT]: Event<EventType, EventData>
     [MessageType.REQUEST]: Request<Method, Params>
     [MessageType.RESPONSE]: Response<Method, Result>
+    [MessageType.CONNECTION]: Connection
   }
 
   export type Request<
@@ -237,5 +293,9 @@ export namespace RPC {
   > = {
     type: EventType
     data: EventData[EventType]
+  }
+
+  export type Connection = {
+    type: 'ping' | 'pong'
   }
 }
