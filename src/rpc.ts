@@ -106,6 +106,11 @@ export class RPC<
               this.send(message)
             }
 
+            // wait for next frame, this allow the contructor on the other end to finish setting up hanlders if necessary
+            const frame = future<unknown>()
+            requestAnimationFrame(frame.resolve)
+            await frame
+
             // flush the queue
             while (this.queue.length > 0) {
               const message = this.queue.shift()!
