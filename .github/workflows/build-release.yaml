@@ -24,7 +24,7 @@ jobs:
       - name: Build
         run: npm run build
       - name: Publish
-        uses: menduz/oddish-action@b08e312231a6f5bbe63618f6dcaf0a1e54527c49 # @master
+        uses: decentraland/oddish-action@0074f2d535c43b5c83f136525304a6277166d77f # @master
         with:
           access: public
         env:
