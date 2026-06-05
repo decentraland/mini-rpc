@@ -10,6 +10,10 @@
     "build": "tsc --project tsconfig.json"
   },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/decentraland/mini-rpc.git"
+  },
   "dependencies": {
     "fp-future": "^1.0.1",
     "mitt": "^3.0.1"
