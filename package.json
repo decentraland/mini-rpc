@@ -12,7 +12,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/decentraland/mini-rpc.git"
+    "url": "git+https://github.com/decentraland/mini-rpc.git"
   },
   "dependencies": {
     "fp-future": "^1.0.1",
